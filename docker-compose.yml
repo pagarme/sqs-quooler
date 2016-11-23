@@ -1,0 +1,20 @@
+version: '2'
+
+services:
+  test:
+    build: .
+    volumes:
+      - ./src:/code/src
+      - ./test:/code/test
+      - ./package.json:/code/package.json
+    links:
+      - yopa
+
+  yopa:
+    image: unbounce/yopa:latest
+    command: java -Xms64m -Xmx256m -jar uberjar.jar -c /tmp/yopa-in/config.yml -o /tmp/dev-env-aws-regions-override.xml
+    expose:
+      - 80
+    volumes:
+      - ./yopa_config.yml:/tmp/yopa-in/config.yml:ro
+
