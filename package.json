@@ -1,7 +1,7 @@
 {
-  "name": "sqs-queue",
-  "version": "0.0.0",
-  "description": "sqs-queue",
+  "name": "sqs-quooler",
+  "version": "1.0.0",
+  "description": "sqs-quooler",
   "license": "MIT",
   "repository": "",
   "author": "",
@@ -22,7 +22,8 @@
     "watch:test": "npm run test -- --watch"
   },
   "dependencies": {
-    "aws-sdk": "^2.7.7"
+    "aws-sdk": "^2.7.7",
+    "bluebird": "^3.4.6"
   },
   "devDependencies": {
     "@types/chai": "3.4.30",
