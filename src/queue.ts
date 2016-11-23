@@ -15,6 +15,8 @@ export class Queue<TItem> extends EventEmitter {
   private stopped: Signal
 
   constructor (options : QueueOptions) {
+    super()
+
     this.options = options
   }
 
