@@ -1,13 +1,16 @@
 import { Credentials, SQS } from 'aws-sdk'
-import { expect } from 'chai'
+import * as chai from 'chai'
 import { Queue } from '../src/queue'
 
+const expect = chai.expect
 const TestEndpoint = 'http://yopa/queue/test'
+
+chai.use(require('chai-subset'))
 
 describe('Queue', () => {
   let sqs : SQS
 
-  before(() => {
+  before(async function () {
     sqs = new SQS({
       region: 'yopa-local',
       credentials: new Credentials({
@@ -15,6 +18,10 @@ describe('Queue', () => {
         secretAccessKey: 'x'
       })
     })
+
+    await sqs.purgeQueue({
+      QueueUrl: TestEndpoint
+    }).promise()
   })
 
   describe('when instantiating', () => {
@@ -29,7 +36,7 @@ describe('Queue', () => {
     let queue : Queue<any>
     let item : any
 
-    before(async function () : Promise<void> {
+    before(async function () {
       queue = new Queue<any>({
         sqs: sqs,
         endpoint: TestEndpoint,
@@ -63,7 +70,34 @@ describe('Queue', () => {
   })
 
   describe('when processing items', () => {
+    let items = []
+    let queue : Queue<string>
 
+    before(async function () : Promise<void> {
+      queue = new Queue<any>({
+        sqs: sqs,
+        endpoint: TestEndpoint,
+        concurrency: 1
+      })
+
+      await queue.push('gretchen')
+      await queue.push('actress')
+    })
+
+    before(done => {
+      queue.startProcessing(item => {
+        items.push(item)
+
+        if (items.length >= 2) {
+          queue.stopProcessing()
+          done()
+        }
+      })
+    })
+
+    it('process the items in the queue', () => {
+      expect(items).to.containSubset(['gretchen', 'actress'])
+    })
   })
 })
 
