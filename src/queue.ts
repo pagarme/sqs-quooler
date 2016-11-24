@@ -27,14 +27,14 @@ export class Queue<TItem> extends EventEmitter {
     }).promise()
   }
 
-  startProcessing (handler : (item : TItem) => any | PromiseLike<any>) {
+  startProcessing (handler : (item : TItem) => any | PromiseLike<any>): PromiseLike<void> {
     let self = this
 
     self.running = true
 
-    pollItems()
+    return pollItems()
 
-    function pollItems() : PromiseLike<any> {
+    function pollItems() : PromiseLike<void> {
       if (!self.running) {
         self.stopped.trigger()
 

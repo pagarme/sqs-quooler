@@ -12,6 +12,6 @@ export declare class Queue<TItem> extends EventEmitter {
     private stopped;
     constructor(options: QueueOptions);
     push(item: TItem): Promise<void>;
-    startProcessing(handler: (item: TItem) => any | PromiseLike<any>): void;
+    startProcessing(handler: (item: TItem) => any | PromiseLike<any>): PromiseLike<void>;
     stopProcessing(): PromiseLike<void>;
 }

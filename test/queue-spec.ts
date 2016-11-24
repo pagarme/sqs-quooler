@@ -1,7 +1,11 @@
-import { Credentials, SQS } from 'aws-sdk'
-import { expect } from 'chai'
-import { Queue } from '../src/queue'
+import * as chai from 'chai'
 import * as Bluebird from 'bluebird'
+import { Credentials, SQS } from 'aws-sdk'
+import { Queue } from '../src/queue'
+
+const expect = chai.expect
+
+chai.use(require('chai-subset'))
 
 const TestEndpoint = 'http://yopa/queue/test'
 
@@ -41,14 +45,6 @@ describe('Queue', () => {
     }).promise()
   })
 
-  describe('when instantiating', () => {
-    xdescribe('with an SQS instance', () => {
-    })
-
-    xdescribe('with an SQS configuration', () => {
-    })
-  })
-
   describe('when posting an item', () => {
     let queue : Queue<any>
     let item : any
@@ -75,6 +71,7 @@ describe('Queue', () => {
   })
 
   describe('when processing items', () => {
+    let startPromise : Bluebird<void>
     let items : any[] = []
     let queue : Queue<string>
 
@@ -90,22 +87,34 @@ describe('Queue', () => {
     })
 
     before(done => {
-      queue.startProcessing(item => {
+      let result = queue.startProcessing(item => {
         items.push(item)
 
         if (items.length >= 2) {
           done()
         }
       })
+
+      // This should only be assumed here, as we now that we use bluebird
+      // And we only use this in order to inspect the promise state
+      startPromise = <Bluebird<void>>result
     })
 
     it('process the items in the queue', () => {
       expect(items).to.containSubset(['gretchen', 'actress'])
     })
 
+    it('should not resolve promise returned in startProcessing', () => {
+      expect(startPromise.isPending()).to.be.true
+    })
+
     describe('when stopping the queue', () => {
       before(() => {
         return queue.stopProcessing()
+      })
+
+      it('should resolve promise returned in startProcessing', () => {
+        expect(startPromise.isPending()).to.be.false
       })
 
       it('should stop consuming the queue', async function () {
