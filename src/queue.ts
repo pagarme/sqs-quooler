@@ -9,6 +9,10 @@ export interface QueueOptions {
   concurrency?: number
 }
 
+export interface ProcessOptions {
+  oneShot?: boolean
+}
+
 export class Queue<TItem> extends EventEmitter {
   private options: QueueOptions
   private running: boolean
@@ -27,8 +31,12 @@ export class Queue<TItem> extends EventEmitter {
     }).promise()
   }
 
-  startProcessing (handler : (item : TItem) => any | PromiseLike<any>): PromiseLike<void> {
+  startProcessing (handler : (item : TItem) => any | PromiseLike<any>, options?: ProcessOptions): PromiseLike<void> {
     let self = this
+
+    if (options == null) {
+      options = {}
+    }
 
     self.running = true
 
@@ -48,8 +56,8 @@ export class Queue<TItem> extends EventEmitter {
         .get('Messages')
         .then(coerce)
         .map(processItem)
-        .then(delay)
-        .then(pollItems)
+        .tap(delay)
+        .then(runAgain)
     }
 
     function processItem (message : any) : PromiseLike<any> {
@@ -80,6 +88,14 @@ export class Queue<TItem> extends EventEmitter {
       if (items.length == 0) {
         return Bluebird.delay(100)
       }
+    }
+
+    function runAgain (items : any[]) : PromiseLike<void> | void {
+      if (items.length == 0 && options.oneShot) {
+        return
+      }
+
+      return pollItems()
     }
   }
 

@@ -128,5 +128,33 @@ describe('Queue', () => {
       })
     })
   })
+
+  describe('when processing items in one shot mode', () => {
+    let items : any[] = []
+    let queue : Queue<string>
+
+    before(async function () : Promise<void> {
+      queue = new Queue<any>({
+        sqs: sqs,
+        endpoint: TestEndpoint,
+        concurrency: 1
+      })
+
+      await queue.push('gretchen')
+      await queue.push('actress')
+    })
+
+    before(() => {
+      return queue.startProcessing(item => {
+        items.push(item)
+      }, {
+        oneShot: true
+      })
+    })
+
+    it('process the items in the queue', () => {
+      expect(items).to.containSubset(['gretchen', 'actress'])
+    })
+  })
 })
 

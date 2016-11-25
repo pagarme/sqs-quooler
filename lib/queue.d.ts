@@ -6,12 +6,15 @@ export interface QueueOptions {
     endpoint: string;
     concurrency?: number;
 }
+export interface ProcessOptions {
+    oneShot?: boolean;
+}
 export declare class Queue<TItem> extends EventEmitter {
     private options;
     private running;
     private stopped;
     constructor(options: QueueOptions);
     push(item: TItem): Promise<void>;
-    startProcessing(handler: (item: TItem) => any | PromiseLike<any>): PromiseLike<void>;
+    startProcessing(handler: (item: TItem) => any | PromiseLike<any>, options?: ProcessOptions): PromiseLike<void>;
     stopProcessing(): PromiseLike<void>;
 }
