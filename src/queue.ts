@@ -91,7 +91,7 @@ export class Queue<TItem> extends EventEmitter {
     }
 
     function runAgain (items : any[]) : PromiseLike<void> | void {
-      if (items.length == 0 && options.oneShot) {
+      if (items.length < this.options.concurrency && options.oneShot) {
         return
       }
 
