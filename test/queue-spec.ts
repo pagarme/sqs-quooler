@@ -156,5 +156,50 @@ describe('Queue', () => {
       expect(items).to.containSubset(['gretchen', 'actress'])
     })
   })
-})
 
+  describe('when processing items and keeping the messages', () => {
+    let firstProcessedItems : any[] = []
+    let laterProcessedItems : any[] = []
+    let Queue = Queue<string>
+
+    before(async function () : Promise<void> {
+      queue = new Queue<any>({
+        sqs: sqs,
+        endpoint: TestEndpoint,
+        concurrency: 1
+      })
+
+      await queue.push('gretchen')
+      await queue.push('actress')
+    })
+
+    before((done) => {
+      queue.startProcessing(item => {
+        items.push(item)
+
+        if (firstProcessedItems.length >= 2) {
+          done()
+        }
+      }, {
+        keepMessage: true
+      })
+    })
+
+    before((done) => {
+      queue.startProcessing(item => {
+        items.push(item)
+
+        if (laterProcessedItems.length >= 2) {
+          done()
+        }
+      }, {
+        keepMessage: true
+      })
+    })
+
+    it('should keep the messages in the queue', () => {
+      expect(firstProcessedItems).to.containSubset(['gretchen', 'actress'])
+      expect(laterProcessedItems).to.containSubset(['gretchen', 'actress'])
+    })
+  })
+})
