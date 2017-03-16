@@ -10,7 +10,8 @@ export interface QueueOptions {
 }
 
 export interface ProcessOptions {
-  oneShot?: boolean
+  oneShot?: boolean,
+  keepMessages?: boolean
 }
 
 export class Queue<TItem> extends EventEmitter {
@@ -31,7 +32,7 @@ export class Queue<TItem> extends EventEmitter {
     }).promise()
   }
 
-  startProcessing (handler : (item : TItem) => any | PromiseLike<any>, options?: ProcessOptions): PromiseLike<void> {
+  startProcessing (handler : (item : TItem, message : SQS.Message) => any | PromiseLike<any>, options?: ProcessOptions): PromiseLike<void> {
     let self = this
 
     if (options == null) {
@@ -60,15 +61,19 @@ export class Queue<TItem> extends EventEmitter {
         .then(runAgain)
     }
 
-    function processItem (message : any) : PromiseLike<any> {
+    function processItem (message : SQS.Message) : PromiseLike<any> {
       let body = <TItem>JSON.parse(message.Body)
 
-      return Bluebird.resolve(body)
-        .then(handler)
+      return Bluebird.resolve([body, message])
+        .spread(handler)
         .then(deleteMessage)
         .catch(handleError)
 
       function deleteMessage () : PromiseLike<any> {
+        if (options.keepMessages) {
+          return
+        }
+
         return self.options.sqs.deleteMessage({
           QueueUrl: self.options.endpoint,
           ReceiptHandle: message.ReceiptHandle
@@ -112,4 +117,3 @@ export class Queue<TItem> extends EventEmitter {
     return this.stopped.promise
   }
 }
-

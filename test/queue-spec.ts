@@ -156,5 +156,62 @@ describe('Queue', () => {
       expect(items).to.containSubset(['gretchen', 'actress'])
     })
   })
-})
 
+  describe('when processing items and keeping the messages', () => {
+    interface Item {
+      body: string,
+      message: SQS.Message
+    }
+
+    let queue : Queue<string>
+    let items : Item[] = []
+
+    const keepMessages : boolean = true
+
+    before(async function () : Promise<void> {
+      queue = new Queue<string>({
+        sqs: sqs,
+        endpoint: TestEndpoint,
+        concurrency: 1
+      })
+
+      await queue.push('bowie')
+    })
+
+    before(function () {
+      return new Promise((resolve) => {
+        const processItem = async function (item : string, message : SQS.Message) {
+          items.push({ body: item, message })
+
+          await sqs.changeMessageVisibility({
+            QueueUrl: TestEndpoint,
+            ReceiptHandle: message.ReceiptHandle,
+            VisibilityTimeout: 0
+          }).promise()
+
+          if (items.length >= 2) {
+            resolve()
+          }
+        }
+
+        queue.startProcessing(processItem, {
+          keepMessages: true
+        })
+      })
+    })
+
+    it('should have processed the same item twice', () => {
+      expect(items[0].body).to.equal('bowie')
+      expect(items[1].body).to.equal('bowie')
+    })
+
+    it('should have different message information', () => {
+      const firstReceiptHandle = items[0].message.ReceiptHandle
+      const secondReceiptHandle = items[1].message.ReceiptHandle
+
+      // NOTE: The ReceiptHandle must be different. This indicates that the
+      // message was posted back to the queue, after it was processed
+      expect(firstReceiptHandle).to.not.equal(secondReceiptHandle)
+    })
+  })
+})
