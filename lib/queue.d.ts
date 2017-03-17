@@ -8,6 +8,7 @@ export interface QueueOptions {
 }
 export interface ProcessOptions {
     oneShot?: boolean;
+    keepMessages?: boolean;
 }
 export declare class Queue<TItem> extends EventEmitter {
     private options;
@@ -15,6 +16,6 @@ export declare class Queue<TItem> extends EventEmitter {
     private stopped;
     constructor(options: QueueOptions);
     push(item: TItem): Promise<void>;
-    startProcessing(handler: (item: TItem) => any | PromiseLike<any>, options?: ProcessOptions): PromiseLike<void>;
+    startProcessing(handler: (item: TItem, message: SQS.Message) => any | PromiseLike<any>, options?: ProcessOptions): PromiseLike<void>;
     stopProcessing(): PromiseLike<void>;
 }
