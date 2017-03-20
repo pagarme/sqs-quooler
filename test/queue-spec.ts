@@ -70,6 +70,45 @@ describe('Queue', () => {
     })
   })
 
+  describe('when deleting an item', () => {
+    let queue : Queue<any>
+    let receiveMessageResponse : any
+
+    before(async function () {
+      queue = new Queue<any>({
+        sqs: sqs,
+        endpoint: TestEndpoint,
+        concurrency: 1
+      })
+
+      await queue.push('mercury')
+
+      let message = await sqs.receiveMessage({
+        QueueUrl: TestEndpoint,
+        MaxNumberOfMessages: 1
+      }).promise().then(result => result.Messages[0])
+
+
+      await sqs.changeMessageVisibility({
+        QueueUrl: TestEndpoint,
+        ReceiptHandle: message.ReceiptHandle,
+        VisibilityTimeout: 0
+      }).promise()
+
+      await queue.remove(message)
+
+      receiveMessageResponse = await sqs.receiveMessage({
+        QueueUrl: TestEndpoint,
+        MaxNumberOfMessages: 1
+      }).promise()
+    })
+
+    it('should have no items in the queue', () => {
+      console.log(receiveMessageResponse)
+      expect(receiveMessageResponse).to.not.have.property('Messages')
+    })
+  })
+
   describe('when processing items', () => {
     let startPromise : Bluebird<void>
     let items : any[] = []

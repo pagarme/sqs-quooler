@@ -32,6 +32,13 @@ export class Queue<TItem> extends EventEmitter {
     }).promise()
   }
 
+  async remove (message : SQS.Message) : Promise<void> {
+    await this.options.sqs.deleteMessage({
+      QueueUrl: this.options.endpoint,
+      ReceiptHandle: message.ReceiptHandle
+    }).promise()
+  }
+
   startProcessing (handler : (item : TItem, message : SQS.Message) => any | PromiseLike<any>, options?: ProcessOptions): PromiseLike<void> {
     let self = this
 
