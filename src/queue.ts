@@ -14,6 +14,10 @@ export interface ProcessOptions {
   keepMessages?: boolean
 }
 
+export interface Params {
+  MessageGroupId?: String
+}
+
 export class Queue<TItem> extends EventEmitter {
   private options: QueueOptions
   private running: boolean
@@ -25,11 +29,13 @@ export class Queue<TItem> extends EventEmitter {
     this.options = options
   }
 
-  async push (item : TItem) : Promise<void> {
-    await this.options.sqs.sendMessage({
-      QueueUrl: this.options.endpoint,
-      MessageBody: JSON.stringify(item)
-    }).promise()
+  async push (item : TItem, parameters : Params = {}) : Promise<void> {
+    await this.options.sqs.sendMessage(
+      Object.assign({}, {
+        QueueUrl: this.options.endpoint,
+        MessageBody: JSON.stringify(item)
+      }, parameters)
+    ).promise()
   }
 
   async remove (message : SQS.Message) : Promise<void> {
