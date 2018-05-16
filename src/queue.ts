@@ -72,7 +72,9 @@ export class Queue<TItem> extends EventEmitter {
         .map(processItem)
         .tap(delay)
         .then(runAgain)
+        .catch(handleCriticalError)
     }
+
 
     function processItem (message : SQS.Message) : PromiseLike<any> {
       let body = <TItem>JSON.parse(message.Body)
@@ -114,6 +116,12 @@ export class Queue<TItem> extends EventEmitter {
       }
 
       return pollItems()
+    }
+
+    function handleCriticalError (err : Error) {
+      self.emit('error', err)
+
+      return Bluebird.delay(100).then(pollItems)
     }
   }
 
