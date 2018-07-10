@@ -1,7 +1,7 @@
 import Bluebird from 'bluebird'
 
-export class Signal {
-  constructor() {
+export default class Signal {
+  constructor () {
     const self = this
 
     this.promise = new Bluebird((resolve) => {
@@ -9,7 +9,7 @@ export class Signal {
     })
   }
 
-  trigger() {
+  trigger () {
     this.triggerFn()
   }
 }

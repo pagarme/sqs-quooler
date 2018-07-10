@@ -1,6 +1,14 @@
 version: '2'
 
 services:
+  lint:
+    build: .
+    entrypoint: npm run lint
+    volumes:
+      - ./src:/sqs-quooler/src
+      - ./test:/sqs-quooler/test
+      - ./package.json:/sqs-quooler/package.json
+
   test:
     build: .
     volumes:
