@@ -15,8 +15,7 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "clean": "rimraf lib",
-    "lint": "tslint --force --format verbose \"src/**/*.ts\"",
-    "build": "npm run clean && npm run lint && echo Using TypeScript && tsc --version && tsc --pretty",
+    "build": "npm run clean && echo Using TypeScript && tsc --version && tsc --pretty",
     "test": "npm run build && mocha --compilers ts:ts-node/register --recursive test/**/*-spec.ts",
     "watch": "npm run build -- --watch",
     "watch:test": "npm run test -- --watch"
@@ -36,7 +35,6 @@
     "mocha": "^3.0.1",
     "rimraf": "^2.5.4",
     "ts-node": "^1.2.2",
-    "tslint": "3.15.1",
     "typescript": "2.0.3"
   },
   "engines": {
