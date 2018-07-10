@@ -27,6 +27,14 @@ export default class Queue extends EventEmitter {
       .promise()
   }
 
+  async changeMessageVisibility (parameters = {}) {
+    await this.options.sqs
+      .changeMessageVisibility(Object.assign({}, {
+        QueueUrl: this.options.endpoint,
+      }, parameters))
+      .promise()
+  }
+
   startProcessing (handler, options = {}) {
     const self = this
 
