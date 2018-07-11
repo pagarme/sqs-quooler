@@ -1,20 +1,36 @@
-version: '2'
+version: '2.1'
 
 services:
+  lint:
+    build: .
+    entrypoint: npm run lint
+    volumes:
+      - ./src:/sqs-quooler/src
+      - ./test:/sqs-quooler/test
+      - ./package.json:/sqs-quooler/package.json
+
   test:
     build: .
+    entrypoint: npm test
     volumes:
-      - ./src:/code/src
-      - ./test:/code/test
-      - ./package.json:/code/package.json
-    links:
-      - yopa
+      - ./src:/sqs-quooler/src
+      - ./test:/sqs-quooler/test
+      - ./package.json:/sqs-quooler/package.json
+    depends_on:
+      yopa:
+        condition: service_healthy
 
   yopa:
-    image: unbounce/yopa:latest
+    image: pagarme/yopa:latest
     command: java -Xms64m -Xmx256m -jar uberjar.jar -c /tmp/yopa-in/config.yml -o /tmp/dev-env-aws-regions-override.xml
-    expose:
-      - 80
+    ports:
+      - 47195
     volumes:
       - ./yopa_config.yml:/tmp/yopa-in/config.yml:ro
-
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "curl -f 'http://localhost:47195?Action=GetQueueUrl&QueueName=test'",
+        ]
+      interval: 5s
+      retries: 5

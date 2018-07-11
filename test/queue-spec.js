@@ -1,64 +1,64 @@
 import * as chai from 'chai'
 import * as Bluebird from 'bluebird'
 import { Credentials, SQS } from 'aws-sdk'
-import { Queue } from '../src/queue'
+import Queue from '../src/queue'
 
-const expect = chai.expect
+const { expect } = chai
 
 chai.use(require('chai-subset'))
 
-const TestEndpoint = 'http://yopa/queue/test'
+const TestEndpoint = 'http://yopa:47195/queue/test'
 
 describe('Queue', () => {
-  let sqs : SQS
+  let sqs
 
-  async function getNextSqsItem () : Promise<any> {
-    let response = await sqs.receiveMessage({
+  async function getNextSqsItem () {
+    const response = await sqs.receiveMessage({
       QueueUrl: TestEndpoint,
-      MaxNumberOfMessages: 1
+      MaxNumberOfMessages: 1,
     }).promise()
 
-    let message = response.Messages[0]
-    let item = JSON.parse(message.Body)
+    const message = response.Messages[0]
+    const item = JSON.parse(message.Body)
 
     await sqs.deleteMessage({
       QueueUrl: TestEndpoint,
-      ReceiptHandle: message.ReceiptHandle
+      ReceiptHandle: message.ReceiptHandle,
     }).promise()
 
     return item
   }
 
-  before(async function () {
+  before(async () => {
     sqs = new SQS({
       region: 'yopa-local',
       credentials: new Credentials({
         accessKeyId: 'x',
-        secretAccessKey: 'x'
-      })
+        secretAccessKey: 'x',
+      }),
     })
   })
 
-  beforeEach(async function () {
+  beforeEach(async () => {
     await sqs.purgeQueue({
-      QueueUrl: TestEndpoint
+      QueueUrl: TestEndpoint,
     }).promise()
   })
 
   describe('when posting an item', () => {
-    let queue : Queue<any>
-    let item : any
+    let queue
+    let item
 
-    before(async function () : Promise<void> {
-      queue = new Queue<any>({
-        sqs: sqs,
+    before(async () => {
+      queue = new Queue({
+        sqs,
         endpoint: TestEndpoint,
-        concurrency: 1
+        concurrency: 1,
       })
 
       await queue.push({
         test: true,
-        lol: '123'
+        lol: '123',
       })
 
       item = await getNextSqsItem()
@@ -71,62 +71,61 @@ describe('Queue', () => {
   })
 
   describe('when deleting an item', () => {
-    let queue : Queue<any>
-    let receiveMessageResponse : any
+    let queue
+    let receiveMessageResponse
 
-    before(async function () {
-      queue = new Queue<any>({
-        sqs: sqs,
+    before(async () => {
+      queue = new Queue({
+        sqs,
         endpoint: TestEndpoint,
-        concurrency: 1
+        concurrency: 1,
       })
 
       await queue.push('mercury')
 
-      let message = await sqs.receiveMessage({
+      const message = await sqs.receiveMessage({
         QueueUrl: TestEndpoint,
-        MaxNumberOfMessages: 1
+        MaxNumberOfMessages: 1,
       }).promise().then(result => result.Messages[0])
 
 
       await sqs.changeMessageVisibility({
         QueueUrl: TestEndpoint,
         ReceiptHandle: message.ReceiptHandle,
-        VisibilityTimeout: 0
+        VisibilityTimeout: 0,
       }).promise()
 
       await queue.remove(message)
 
       receiveMessageResponse = await sqs.receiveMessage({
         QueueUrl: TestEndpoint,
-        MaxNumberOfMessages: 1
+        MaxNumberOfMessages: 1,
       }).promise()
     })
 
     it('should have no items in the queue', () => {
-      console.log(receiveMessageResponse)
       expect(receiveMessageResponse).to.not.have.property('Messages')
     })
   })
 
   describe('when processing items', () => {
-    let startPromise : Bluebird<void>
-    let items : any[] = []
-    let queue : Queue<string>
+    let startPromise
+    const items = []
+    let queue
 
-    before(async function () : Promise<void> {
-      queue = new Queue<any>({
-        sqs: sqs,
+    before(async () => {
+      queue = new Queue({
+        sqs,
         endpoint: TestEndpoint,
-        concurrency: 1
+        concurrency: 1,
       })
 
       await queue.push('gretchen')
       await queue.push('actress')
     })
 
-    before(done => {
-      let result = queue.startProcessing(item => {
+    before((done) => {
+      const result = queue.startProcessing((item) => {
         items.push(item)
 
         if (items.length >= 2) {
@@ -136,7 +135,7 @@ describe('Queue', () => {
 
       // This should only be assumed here, as we now that we use bluebird
       // And we only use this in order to inspect the promise state
-      startPromise = <Bluebird<void>>result
+      startPromise = result
     })
 
     it('process the items in the queue', () => {
@@ -144,24 +143,22 @@ describe('Queue', () => {
     })
 
     it('should not resolve promise returned in startProcessing', () => {
-      expect(startPromise.isPending()).to.be.true
+      expect(startPromise.isPending()).to.equal(true)
     })
 
     describe('when stopping the queue', () => {
-      before(() => {
-        return queue.stopProcessing()
-      })
+      before(() => queue.stopProcessing())
 
       it('should resolve promise returned in startProcessing', () => {
-        expect(startPromise.isPending()).to.be.false
+        expect(startPromise.isPending()).to.equal(false)
       })
 
-      it('should stop consuming the queue', async function () {
+      it('should stop consuming the queue', async () => {
         await queue.push('tdb')
 
         await Bluebird.delay(100)
 
-        let item = await getNextSqsItem()
+        const item = await getNextSqsItem()
 
         expect(item).to.equal('tdb')
       })
@@ -169,27 +166,26 @@ describe('Queue', () => {
   })
 
   describe('when processing items in one shot mode', () => {
-    let items : any[] = []
-    let queue : Queue<string>
+    const items = []
+    let queue
 
-    before(async function () : Promise<void> {
-      queue = new Queue<any>({
-        sqs: sqs,
+    before(async () => {
+      queue = new Queue({
+        sqs,
         endpoint: TestEndpoint,
-        concurrency: 1
+        concurrency: 1,
       })
 
       await queue.push('gretchen')
       await queue.push('actress')
     })
 
-    before(() => {
-      return queue.startProcessing(item => {
+    before(() =>
+      queue.startProcessing((item) => {
         items.push(item)
       }, {
-        oneShot: true
-      })
-    })
+        oneShot: true,
+      }))
 
     it('process the items in the queue', () => {
       expect(items).to.containSubset(['gretchen', 'actress'])
@@ -197,35 +193,28 @@ describe('Queue', () => {
   })
 
   describe('when processing items and keeping the messages', () => {
-    interface Item {
-      body: string,
-      message: SQS.Message
-    }
+    let queue
+    const items = []
 
-    let queue : Queue<string>
-    let items : Item[] = []
-
-    const keepMessages : boolean = true
-
-    before(async function () : Promise<void> {
-      queue = new Queue<string>({
-        sqs: sqs,
+    before(async () => {
+      queue = new Queue({
+        sqs,
         endpoint: TestEndpoint,
-        concurrency: 1
+        concurrency: 1,
       })
 
       await queue.push('bowie')
     })
 
-    before(function () {
-      return new Promise((resolve) => {
-        const processItem = async function (item : string, message : SQS.Message) {
+    before(() =>
+      new Promise((resolve) => {
+        const processItem = async (item, message) => {
           items.push({ body: item, message })
 
           await sqs.changeMessageVisibility({
             QueueUrl: TestEndpoint,
             ReceiptHandle: message.ReceiptHandle,
-            VisibilityTimeout: 0
+            VisibilityTimeout: 0,
           }).promise()
 
           if (items.length >= 2) {
@@ -234,10 +223,9 @@ describe('Queue', () => {
         }
 
         queue.startProcessing(processItem, {
-          keepMessages: true
+          keepMessages: true,
         })
-      })
-    })
+      }))
 
     it('should have processed the same item twice', () => {
       expect(items[0].body).to.equal('bowie')

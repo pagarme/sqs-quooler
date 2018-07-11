@@ -1,9 +1,6 @@
-FROM node:latest
+FROM pagarme/docker-nodejs:8.9
 
-ADD . /code
-WORKDIR /code
+ADD . /sqs-quooler
+WORKDIR /sqs-quooler
 
 RUN npm install
-
-CMD ["npm", "test"]
-
