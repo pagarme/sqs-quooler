@@ -7,7 +7,7 @@ const { expect } = chai
 
 chai.use(require('chai-subset'))
 
-const TestEndpoint = 'http://yopa/queue/test'
+const TestEndpoint = 'http://yopa:47195/queue/test'
 
 describe('Queue', () => {
   let sqs
