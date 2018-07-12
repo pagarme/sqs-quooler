@@ -165,6 +165,45 @@ describe('Queue', () => {
     })
   })
 
+  describe('when changing message visibility timeout', () => {
+    let queue
+    let message
+    let receiveMessageResponse
+
+    before(async () => {
+      queue = new Queue({
+        sqs,
+        endpoint: TestEndpoint,
+        concurrency: 1,
+      })
+
+      await queue.push('mercury')
+
+      message = await sqs.receiveMessage({
+        QueueUrl: TestEndpoint,
+        MaxNumberOfMessages: 1,
+      }).promise().then(result => result.Messages[0])
+
+
+      await queue.changeMessageVisibility({
+        ReceiptHandle: message.ReceiptHandle,
+        VisibilityTimeout: 0,
+      })
+
+      receiveMessageResponse = await sqs.receiveMessage({
+        QueueUrl: TestEndpoint,
+        MaxNumberOfMessages: 1,
+      }).promise()
+    })
+
+    it('should have received the message again', () => {
+      expect(receiveMessageResponse).to.have.property('Messages')
+      expect(receiveMessageResponse.Messages[0].Body).to.equal('"mercury"')
+      expect(receiveMessageResponse.Messages[0].MessageId)
+        .to.equal(message.MessageId)
+    })
+  })
+
   describe('when processing items in one shot mode', () => {
     const items = []
     let queue
