@@ -41,7 +41,12 @@ export default class Queue extends EventEmitter {
     self.running = true
 
     const processItem = (message) => {
-      const body = JSON.parse(message.Body)
+      let body = ''
+      try {
+        body = JSON.parse(message.Body)
+      } catch (e) {
+        body = message.Body
+      }
 
       const deleteMessage = () => {
         if (options.keepMessages) {

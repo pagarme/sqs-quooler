@@ -280,4 +280,54 @@ describe('Queue', () => {
       expect(firstReceiptHandle).to.not.equal(secondReceiptHandle)
     })
   })
+
+  describe('when passing invalid payloads', () => {
+    let queue
+    const items = []
+    const stringEvent = 'testingString'
+    const invalidJSON = '{test}'
+
+    before(async () => {
+      queue = new Queue({
+        sqs,
+        endpoint: TestEndpoint,
+        concurrency: 1,
+      })
+
+      await sqs
+        .sendMessage({
+          QueueUrl: TestEndpoint,
+          MessageBody: stringEvent,
+        })
+        .promise()
+
+      await queue.startProcessing((item) => {
+        items.push(item)
+      }, {
+        oneShot: true,
+      })
+
+      await sqs
+        .sendMessage({
+          QueueUrl: TestEndpoint,
+          MessageBody: invalidJSON,
+        })
+        .promise()
+
+      await queue.startProcessing((item) => {
+        items.push(item)
+        queue.stopProcessing()
+      }, {
+        oneShot: true,
+      })
+    })
+
+    it('should accept adding a string', () => {
+      expect(items[0]).to.be.equal(stringEvent)
+    })
+
+    it('should not allow invalid JSON payloads', () => {
+      expect(items[1]).to.be.equal(invalidJSON)
+    })
+  })
 })
