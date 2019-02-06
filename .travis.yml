@@ -8,11 +8,16 @@ env:
     - DOCKER_COMPOSE_VERSION=1.10.0
 
 before_install:
-  - sudo rm /usr/local/bin/docker-compose
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - sudo mv docker-compose /usr/local/bin
+  - echo "fake before_install"
+  # - sudo rm /usr/local/bin/docker-compose
+  # - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  # - chmod +x docker-compose
+  # - sudo mv docker-compose /usr/local/bin
 
 script:
-  - docker-compose run test
-  - docker-compose run lint
+  # - docker-compose run test
+  # - docker-compose run lint
+  - wget -c https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
+  - unzip sonar-scanner-cli-3.2.0.1227-linux.zip -d /tmp
+  - PATH=$PATH:/tmp/sonar-scanner-3.2.0.1227-linux/bin
+  - sonar-scanner -Dsonar.login=$SONARQUBE_TOKEN -Dsonar.projectKey=$SONARQUBE_PROJECTKEY -Dsonar.host.url=$SONARQUBE_URL -Dsonar.sources=. -X
