@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+      "module": "commonjs",
+      "outDir": "./lib",
+      "allowJs": true,
+      "target": "es5",
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "declaration": true,
+      "sourceRoot": "./" ,
+      "typeRoots": [
+        "./node_modules/@types"
+      ]
+  },
+  "include": [
+      "./src/**/*"
+  ]
+}

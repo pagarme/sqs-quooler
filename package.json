@@ -18,10 +18,11 @@
     "aws"
   ],
   "main": "lib/index.js",
+  "types": "lib/index",
   "scripts": {
-    "build": "babel src --out-dir lib",
+    "build": "tsc --pretty",
     "lint": "eslint 'src/**/*.js' 'test/**/*.js'",
-    "test": "mocha --compilers js:babel-core/register --require babel-polyfill --recursive test/**/*-spec.js"
+    "test": "mocha --require ts-node/register --recursive test/**/*-spec.js"
   },
   "dependencies": {
     "aws-sdk": "2.272.1",
@@ -37,6 +38,8 @@
     "eslint": "5.1.0",
     "eslint-config-pagarme-base": "2.0.0",
     "eslint-plugin-import": "2.13.0",
-    "mocha": "5.2.0"
+    "mocha": "5.2.0",
+    "ts-node": "8.5.4",
+    "typescript": "3.7.4"
   }
 }
