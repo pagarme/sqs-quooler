@@ -1,11 +1,12 @@
 import * as chai from 'chai'
 import * as Bluebird from 'bluebird'
 import { Credentials, SQS } from 'aws-sdk'
+import chaiSubset from 'chai-subset'
 import Queue from '../src/queue.ts'
 
 const { expect } = chai
 
-chai.use(require('chai-subset'))
+chai.use(chaiSubset)
 
 const TestEndpoint = 'http://yopa:47195/queue/test'
 

@@ -1,23 +1,22 @@
 import Bluebird from 'bluebird'
 import { EventEmitter } from 'events'
-import Signal from './signal'
 import { SQS } from 'aws-sdk'
+// eslint-disable-next-line import/no-unresolved,import/extensions
+import Signal from './signal'
 
 export default class Queue extends EventEmitter {
   running: boolean
-  stopped: any
+  stopped
 
-  constructor (
-    public options: {
-      sqs: SQS,
-      endpoint: string,
-      concurrency: number,
-    }
-  ) {
+  constructor (public options: {
+    sqs: SQS;
+    endpoint: string;
+    concurrency: number;
+  }) {
     super()
   }
 
-  async push (item: Object, parameters = {}) {
+  async push (item: { [key: string]: any }, parameters = {}) {
     await this.options.sqs
       .sendMessage({
         QueueUrl: this.options.endpoint,
@@ -36,12 +35,10 @@ export default class Queue extends EventEmitter {
       .promise()
   }
 
-  async changeMessageVisibility (
-    parameters: {
-      ReceiptHandle: string,
-      VisibilityTimeout: number,
-    }
-  ) {
+  async changeMessageVisibility (parameters: {
+    ReceiptHandle: string;
+    VisibilityTimeout: number;
+  }) {
     await this.options.sqs
       .changeMessageVisibility({
         QueueUrl: this.options.endpoint,
@@ -53,13 +50,11 @@ export default class Queue extends EventEmitter {
   startProcessing (
     handler,
     options: {
-      keepMessages?: boolean,
-      oneShot?: boolean,
+      keepMessages?: boolean;
+      oneShot?: boolean;
     } = {}
   ) {
-    const self = this
-
-    self.running = true
+    this.running = true
 
     const processItem = (message) => {
       let body = ''
@@ -74,16 +69,16 @@ export default class Queue extends EventEmitter {
           return Bluebird.resolve()
         }
 
-        return self.options.sqs
+        return this.options.sqs
           .deleteMessage({
-            QueueUrl: self.options.endpoint,
+            QueueUrl: this.options.endpoint,
             ReceiptHandle: message.ReceiptHandle,
           })
           .promise()
       }
 
       const handleError = (err) => {
-        self.emit('error', err)
+        this.emit('error', err)
       }
 
       return Bluebird.resolve([body, message])
@@ -103,14 +98,14 @@ export default class Queue extends EventEmitter {
     }
 
     const pollItems = () => {
-      if (!self.running) {
-        self.stopped.trigger()
+      if (!this.running) {
+        this.stopped.trigger()
 
         return Bluebird.resolve()
       }
 
       const runAgain = (items) => {
-        if (items.length < self.options.concurrency && options.oneShot) {
+        if (items.length < this.options.concurrency && options.oneShot) {
           return Bluebird.resolve()
         }
 
@@ -118,15 +113,15 @@ export default class Queue extends EventEmitter {
       }
 
       const handleCriticalError = (err) => {
-        self.emit('error', err)
+        this.emit('error', err)
 
         return Bluebird.delay(100).then(pollItems)
       }
 
-      return Bluebird.resolve(self.options.sqs
+      return Bluebird.resolve(this.options.sqs
         .receiveMessage({
-          QueueUrl: self.options.endpoint,
-          MaxNumberOfMessages: self.options.concurrency,
+          QueueUrl: this.options.endpoint,
+          MaxNumberOfMessages: this.options.concurrency,
         })
         .promise())
         .get('Messages')

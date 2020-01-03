@@ -1,7 +1,14 @@
 {
-  "extends": ["pagarme-base"],
+  "extends": [
+    "pagarme-base",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "env": {
     "node": true,
-    "mocha": true,
+    "mocha": true
   },
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint/eslint-plugin"
+  ]
 }
