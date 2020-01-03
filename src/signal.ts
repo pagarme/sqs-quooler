@@ -1,6 +1,9 @@
 import Bluebird from 'bluebird'
 
 export default class Signal {
+  promise: Promise<void>
+  triggerFn: () => void
+  
   constructor () {
     const self = this
 
@@ -13,4 +16,3 @@ export default class Signal {
     this.triggerFn()
   }
 }
-

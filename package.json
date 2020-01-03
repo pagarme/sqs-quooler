@@ -30,6 +30,9 @@
     "bluebird": "3.4.6"
   },
   "devDependencies": {
+    "@types/aws-sdk": "2.7.0",
+    "@types/events": "3.0.0",
+    "@types/node": "13.1.2",
     "babel-cli": "6.26.0",
     "babel-core": "6.26.3",
     "babel-preset-env": "1.7.0",

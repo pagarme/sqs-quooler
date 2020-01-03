@@ -1,20 +1,29 @@
 import Bluebird from 'bluebird'
 import { EventEmitter } from 'events'
 import Signal from './signal'
+import { SQS } from 'aws-sdk'
 
 export default class Queue extends EventEmitter {
-  constructor (options) {
-    super()
+  running: boolean
+  stopped: any
 
-    this.options = options
+  constructor (
+    public options: {
+      sqs: SQS,
+      endpoint: string,
+      concurrency: number,
+    }
+  ) {
+    super()
   }
 
-  async push (item, parameters = {}) {
+  async push (item: Object, parameters = {}) {
     await this.options.sqs
-      .sendMessage(Object.assign({}, {
+      .sendMessage({
         QueueUrl: this.options.endpoint,
         MessageBody: JSON.stringify(item),
-      }, parameters))
+        ...parameters,
+      })
       .promise()
   }
 
@@ -27,15 +36,27 @@ export default class Queue extends EventEmitter {
       .promise()
   }
 
-  async changeMessageVisibility (parameters = {}) {
+  async changeMessageVisibility (
+    parameters: {
+      ReceiptHandle: string,
+      VisibilityTimeout: number,
+    }
+  ) {
     await this.options.sqs
-      .changeMessageVisibility(Object.assign({}, {
+      .changeMessageVisibility({
         QueueUrl: this.options.endpoint,
-      }, parameters))
+        ...parameters,
+      })
       .promise()
   }
 
-  startProcessing (handler, options = {}) {
+  startProcessing (
+    handler,
+    options: {
+      keepMessages?: boolean,
+      oneShot?: boolean,
+    } = {}
+  ) {
     const self = this
 
     self.running = true
@@ -85,7 +106,7 @@ export default class Queue extends EventEmitter {
       if (!self.running) {
         self.stopped.trigger()
 
-        return Promise.resolve()
+        return Bluebird.resolve()
       }
 
       const runAgain = (items) => {
