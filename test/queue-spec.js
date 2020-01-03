@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 import * as Bluebird from 'bluebird'
 import { Credentials, SQS } from 'aws-sdk'
-import Queue from '../src/queue'
+import Queue from '../src/queue.ts'
 
 const { expect } = chai
 
