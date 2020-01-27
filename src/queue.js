@@ -2,6 +2,8 @@ import Bluebird from 'bluebird'
 import { EventEmitter } from 'events'
 import Signal from './signal'
 
+const DEFAULT_MAX_RETRIES = 3
+
 export default class Queue extends EventEmitter {
   constructor (options) {
     super()
@@ -9,13 +11,23 @@ export default class Queue extends EventEmitter {
     this.options = options
   }
 
-  async push (item, parameters = {}) {
-    await this.options.sqs
-      .sendMessage(Object.assign({}, {
-        QueueUrl: this.options.endpoint,
-        MessageBody: JSON.stringify(item),
-      }, parameters))
-      .promise()
+  // eslint-disable-next-line consistent-return
+  async push (item, parameters = {}, retries = 1) {
+    try {
+      await this.options.sqs
+        .sendMessage(Object.assign({}, {
+          QueueUrl: this.options.endpoint,
+          MessageBody: JSON.stringify(item),
+        }, parameters))
+        .promise()
+    } catch (error) {
+      if (parameters.max_retries && retries <= parameters.max_retries) {
+        return this.push(item, parameters, retries + 1)
+      } else if (!parameters.max_retries && retries <= DEFAULT_MAX_RETRIES) {
+        return this.push(item, parameters, retries + 1)
+      }
+      throw error
+    }
   }
 
   async remove (message) {
