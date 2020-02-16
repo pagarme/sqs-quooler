@@ -1,5 +1,8 @@
 import 'babel-polyfill'
 import Queue from './queue'
+import PrioritiesQueues from './priorities-queues'
 
-// eslint-disable-next-line import/prefer-default-export
-export { Queue }
+export {
+  Queue,
+  PrioritiesQueues,
+}

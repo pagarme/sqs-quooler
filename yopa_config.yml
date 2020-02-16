@@ -8,3 +8,6 @@ sqs:
 
 messaging:
   - sqs://test
+  - sqs://low-priority
+  - sqs://default-priority
+  - sqs://high-priority
