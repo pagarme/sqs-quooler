@@ -25,8 +25,8 @@
   },
   "dependencies": {
     "aws-sdk": "2.272.1",
-    "babel-polyfill": "6.26.0",
-    "bluebird": "3.4.6"
+    "bluebird": "3.4.6",
+    "idempotent-babel-polyfill": "6.26.0-2"
   },
   "devDependencies": {
     "babel-cli": "6.26.0",
