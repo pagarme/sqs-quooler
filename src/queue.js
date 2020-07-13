@@ -89,11 +89,17 @@ export default class Queue extends EventEmitter {
       }
 
       const runAgain = (items) => {
-        if (items.length < self.options.concurrency && options.oneShot) {
-          return Bluebird.resolve()
+        if (options.oneShot) {
+          if (items.length < self.options.concurrency) {
+            return Bluebird.resolve()
+          }
+
+          return pollItems()
         }
 
-        return pollItems()
+        // Async call without return to avoid memory leak
+        pollItems()
+        return Bluebird.resolve()
       }
 
       const handleCriticalError = (err) => {

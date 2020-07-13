@@ -109,7 +109,6 @@ describe('Queue', () => {
   })
 
   describe('when processing items', () => {
-    let startPromise
     const items = []
     let queue
 
@@ -125,17 +124,13 @@ describe('Queue', () => {
     })
 
     before((done) => {
-      const result = queue.startProcessing((item) => {
+      queue.startProcessing((item) => {
         items.push(item)
 
         if (items.length >= 2) {
           done()
         }
       })
-
-      // This should only be assumed here, as we now that we use bluebird
-      // And we only use this in order to inspect the promise state
-      startPromise = result
     })
 
     it('process the items in the queue', () => {
@@ -143,14 +138,14 @@ describe('Queue', () => {
     })
 
     it('should not resolve promise returned in startProcessing', () => {
-      expect(startPromise.isPending()).to.equal(true)
+      expect(queue.running).to.equal(true)
     })
 
     describe('when stopping the queue', () => {
       before(() => queue.stopProcessing())
 
       it('should resolve promise returned in startProcessing', () => {
-        expect(startPromise.isPending()).to.equal(false)
+        expect(queue.running).to.equal(false)
       })
 
       it('should stop consuming the queue', async () => {
