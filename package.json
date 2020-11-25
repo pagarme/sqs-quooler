@@ -1,6 +1,6 @@
 {
   "name": "sqs-quooler",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "An abstraction of AWS SQS",
   "license": "MIT",
   "repository": {
