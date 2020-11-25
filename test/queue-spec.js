@@ -110,6 +110,7 @@ describe('Queue', () => {
 
   describe('when processing items', () => {
     const items = []
+    const messages = []
     let queue
 
     before(async () => {
@@ -119,13 +120,28 @@ describe('Queue', () => {
         concurrency: 1,
       })
 
-      await queue.push('gretchen')
-      await queue.push('actress')
+      await queue.push('gretchen', {
+        MessageAttributes: {
+          type: {
+            DataType: 'String',
+            StringValue: 'name',
+          },
+        },
+      })
+      await queue.push('actress', {
+        MessageAttributes: {
+          type: {
+            DataType: 'String',
+            StringValue: 'adjective',
+          },
+        },
+      })
     })
 
     before((done) => {
-      queue.startProcessing((item) => {
+      queue.startProcessing((item, message) => {
         items.push(item)
+        messages.push(message)
 
         if (items.length >= 2) {
           done()
@@ -135,6 +151,27 @@ describe('Queue', () => {
 
     it('process the items in the queue', () => {
       expect(items).to.containSubset(['gretchen', 'actress'])
+    })
+
+    it('should have the correct messages', () => {
+      expect(messages).to.have.lengthOf(2)
+
+      expect(messages[0].MessageAttributes).to.deep.equal({
+        type: {
+          DataType: 'String',
+          StringValue: 'name',
+          BinaryListValues: [],
+          StringListValues: [],
+        },
+      })
+      expect(messages[1].MessageAttributes).to.deep.equal({
+        type: {
+          DataType: 'String',
+          StringValue: 'adjective',
+          BinaryListValues: [],
+          StringListValues: [],
+        },
+      })
     })
 
     it('should not resolve promise returned in startProcessing', () => {

@@ -73,7 +73,11 @@ myQueue.changeMessageVisibility({
 >`myQueue.startProcessing` (handler: function, options: object) : Promise
 
 Handler function should accept 2 arguments, the first one being the parsed message `Body` value, and the second one being the whole message object. It will be called once for every message found in the queue (depending on the queue's `concurrency`).
-The options object is optional and may receive a `keepMessages` property (boolean).
+
+The options object is optional and accept the following properties:
+- `keepMessages` (boolean): To avoid deleting the message after processing it. Default is `false`.
+- `messageAttributesNames` (string array): The value which will be sent to the `receiveMessage` SQS method at the `MessageAttributeNames` property. Default value is `['ALL']`.
+
 After the handler returns (if it returns a Promise, SQS Quooler will wait for it to resolve), the item is automatically deleted from the queue. If your handler throws an error, or returns a rejected Promise, the item will not be removed from the queue.
 
 ```javascript
@@ -85,6 +89,14 @@ myQueue.startProcessing((body, message) => {
   // message: {
   //   Body: '{"data":"test"}',
   //   ReceiptHandle: 'receipt handle',
+  //   MessageAttributes: {
+  //     custom_attribute: {
+  //       StringValue: 'custom_attribute value',
+  //       StringListValues: [],
+  //       BinaryListValues: [],
+  //       DataType: 'String'
+  //     }
+  //   }
   //   ...
   // }
 })
