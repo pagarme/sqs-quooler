@@ -76,7 +76,7 @@ Handler function should accept 2 arguments, the first one being the parsed messa
 
 The options object is optional and accept the following properties:
 - `keepMessages` (boolean): To avoid deleting the message after processing it. Default is `false`.
-- `messageAttributesNames` (string array): The value which will be sent to the `receiveMessage` SQS method at the `MessageAttributeNames` property. Default value is `['ALL']`.
+- `messageAttributesNames` (string array): The value which will be sent to the `receiveMessage` SQS method at the `MessageAttributeNames` property. Default value is `['All']`.
 
 After the handler returns (if it returns a Promise, SQS Quooler will wait for it to resolve), the item is automatically deleted from the queue. If your handler throws an error, or returns a rejected Promise, the item will not be removed from the queue.
 
