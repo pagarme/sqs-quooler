@@ -136,4 +136,11 @@ export default class Queue extends EventEmitter {
 
     return this.stopped.promise
   }
+
+  async purge () {
+    await this.options.sqs
+      .purgeQueue({
+        QueueUrl: this.options.endpoint,
+      }).promise()
+  }
 }

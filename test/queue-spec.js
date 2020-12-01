@@ -362,4 +362,34 @@ describe('Queue', () => {
       expect(items[1]).to.be.equal(invalidJSON)
     })
   })
+
+  describe('when purging a queue', () => {
+    let queue
+    let receiveMessageResponse
+
+    before(async () => {
+      queue = new Queue({
+        sqs,
+        endpoint: TestEndpoint,
+        concurrency: 1,
+      })
+
+      await Promise.all([
+        queue.push('Hey'),
+        queue.push('Ho'),
+        queue.push('Let`s go'),
+      ])
+
+      await queue.purge()
+
+      receiveMessageResponse = await sqs.receiveMessage({
+        QueueUrl: TestEndpoint,
+        MaxNumberOfMessages: 1,
+      }).promise()
+    })
+
+    it('should have no items in the queue', () => {
+      expect(receiveMessageResponse).to.not.have.property('Messages')
+    })
+  })
 })

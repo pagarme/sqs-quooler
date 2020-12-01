@@ -108,6 +108,15 @@ myQueue.startProcessing((body, message) => {
 myQueue.stopProcessing()
 ```
 
+### Purge the queue
+>`myQueue.purge` () : Promise
+
+Deletes all messages in a queue
+
+```javascript
+myQueue.purge()
+```
+
 ## License
 >You can check out the full license [here](https://github.com/pagarme/sqs-quooler/blob/master/LICENSE)
 
