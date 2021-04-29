@@ -113,6 +113,7 @@ export default class Queue extends EventEmitter {
           QueueUrl: self.options.endpoint,
           MaxNumberOfMessages: self.options.concurrency,
           MessageAttributeNames: options.messageAttributeNames || ['All'],
+          AttributeNames: options.attributeNames || ['All'],
         })
         .promise())
         .get('Messages')
