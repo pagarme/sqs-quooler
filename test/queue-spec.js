@@ -164,6 +164,7 @@ describe('Queue', () => {
           StringListValues: [],
         },
       })
+
       expect(messages[1].MessageAttributes).to.deep.equal({
         type: {
           DataType: 'String',
@@ -172,6 +173,17 @@ describe('Queue', () => {
           StringListValues: [],
         },
       })
+
+      expect(messages[0].Attributes).to.have.property('SentTimestamp')
+      expect(messages[0].Attributes).to.have.property('ApproximateReceiveCount', '1')
+      expect(messages[0].Attributes).to.have.property('ApproximateFirstReceiveTimestamp')
+      expect(messages[0].Attributes).to.have.property('SenderId')
+
+
+      expect(messages[1].Attributes).to.have.property('SentTimestamp')
+      expect(messages[1].Attributes).to.have.property('ApproximateReceiveCount', '1')
+      expect(messages[1].Attributes).to.have.property('ApproximateFirstReceiveTimestamp')
+      expect(messages[1].Attributes).to.have.property('SenderId')
     })
 
     it('should not resolve promise returned in startProcessing', () => {
