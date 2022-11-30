@@ -2,7 +2,7 @@ import Bluebird from 'bluebird'
 import { EventEmitter } from 'events'
 import Signal from './signal'
 
-const MAX_SQS_CONCURRENCY = 10 
+const MAX_SQS_CONCURRENCY = 10
 
 export default class Queue extends EventEmitter {
   constructor (options) {
@@ -83,10 +83,10 @@ export default class Queue extends EventEmitter {
       return Bluebird.resolve()
     }
 
-    const receiveMessages = (messagesResult = []) => {
-      const maxNumberOfMessages = self.options.concurrency > MAX_SQS_CONCURRENCY
+    const receiveMessages = (messagesResult = [], remainingCount = self.options.concurrency) => {
+      const maxNumberOfMessages = remainingCount > MAX_SQS_CONCURRENCY
         ? MAX_SQS_CONCURRENCY
-        : self.options.concurrency
+        : remainingCount
 
       return Bluebird.resolve(self.options.sqs.receiveMessage({
           QueueUrl: self.options.endpoint,
@@ -97,14 +97,14 @@ export default class Queue extends EventEmitter {
         .get('Messages')
         .then(coerce)
         .then((messages) => {
-          const isMaxNumberOfMessages = messages.length >= MAX_SQS_CONCURRENCY
-          
+          const isMaxNumberOfMessages = messages.length === maxNumberOfMessages
+
           messagesResult = messagesResult.concat(messages)
-          
+
           const isLessThenConcurrency = messagesResult.length < self.options.concurrency
 
           if (isMaxNumberOfMessages && isLessThenConcurrency) {
-            return receiveMessages(messagesResult)
+            return receiveMessages(messagesResult, remainingCount - messages.length)
           }
 
           return messagesResult
