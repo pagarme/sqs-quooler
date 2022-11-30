@@ -2,6 +2,8 @@ import Bluebird from 'bluebird'
 import { EventEmitter } from 'events'
 import Signal from './signal'
 
+const MAX_SQS_CONCURRENCY = 10
+
 export default class Queue extends EventEmitter {
   constructor (options) {
     super()
@@ -81,6 +83,34 @@ export default class Queue extends EventEmitter {
       return Bluebird.resolve()
     }
 
+    const receiveMessages = (messagesResult = [], remainingCount = self.options.concurrency) => {
+      const maxNumberOfMessages = remainingCount > MAX_SQS_CONCURRENCY
+        ? MAX_SQS_CONCURRENCY
+        : remainingCount
+
+      return Bluebird.resolve(self.options.sqs.receiveMessage({
+          QueueUrl: self.options.endpoint,
+          MaxNumberOfMessages: maxNumberOfMessages,
+          MessageAttributeNames: options.messageAttributeNames || ['All'],
+          AttributeNames: options.attributeNames || ['All'],
+        }).promise())
+        .get('Messages')
+        .then(coerce)
+        .then((messages) => {
+          const isMaxNumberOfMessages = messages.length === maxNumberOfMessages
+
+          messagesResult = messagesResult.concat(messages)
+
+          const isLessThenConcurrency = messagesResult.length < self.options.concurrency
+
+          if (isMaxNumberOfMessages && isLessThenConcurrency) {
+            return receiveMessages(messagesResult, remainingCount - messages.length)
+          }
+
+          return messagesResult
+        })
+    }
+
     const pollItems = () => {
       if (!self.running) {
         self.stopped.trigger()
@@ -108,16 +138,7 @@ export default class Queue extends EventEmitter {
         return Bluebird.delay(100).then(pollItems)
       }
 
-      return Bluebird.resolve(self.options.sqs
-        .receiveMessage({
-          QueueUrl: self.options.endpoint,
-          MaxNumberOfMessages: self.options.concurrency,
-          MessageAttributeNames: options.messageAttributeNames || ['All'],
-          AttributeNames: options.attributeNames || ['All'],
-        })
-        .promise())
-        .get('Messages')
-        .then(coerce)
+      return receiveMessages()
         .map(processItem)
         .tap(delay)
         .then(runAgain)
