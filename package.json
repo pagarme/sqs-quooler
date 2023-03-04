@@ -37,6 +37,6 @@
     "eslint": "5.1.0",
     "eslint-config-pagarme-base": "2.0.0",
     "eslint-plugin-import": "2.13.0",
-    "mocha": "5.2.0"
+    "mocha": "10.2.0"
   }
 }
