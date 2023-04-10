@@ -24,7 +24,7 @@
     "test": "mocha --compilers js:babel-core/register --require babel-polyfill --recursive test/**/*-spec.js"
   },
   "dependencies": {
-    "aws-sdk": "2.814.0",
+    "aws-sdk": "2.1354.0",
     "bluebird": "3.4.6",
     "idempotent-babel-polyfill": "6.26.0-2"
   },
