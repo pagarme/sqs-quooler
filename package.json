@@ -24,7 +24,7 @@
     "test": "mocha --compilers js:babel-core/register --require babel-polyfill --recursive test/**/*-spec.js"
   },
   "dependencies": {
-    "aws-sdk": "2.814.0",
+    "aws-sdk": "2.1691.0",
     "bluebird": "3.4.6",
     "idempotent-babel-polyfill": "6.26.0-2"
   },
@@ -37,6 +37,6 @@
     "eslint": "5.1.0",
     "eslint-config-pagarme-base": "2.0.0",
     "eslint-plugin-import": "2.13.0",
-    "mocha": "5.2.0"
+    "mocha": "10.7.3"
   }
 }
